@@ -11,3 +11,7 @@ __pycache__/
 runs/
 yolo_dataset/
 cvat_exports_v2/
+!weights/*.pt
+!weights/*.onnx
+!results/*.png
+!results/*.jpg
