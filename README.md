@@ -85,7 +85,7 @@ python3 pi/vision/yolo_hand_live.py
 
 ### Results
 
-YOLOv8n-pose trained on 3,332 frames for 150 epochs with HSV augmentation.
+YOLOv8n-pose trained on 3,332 frames for 150 epochs with HSV augmentation. Gloved-hand validation data is held out as entire CVAT jobs rather than random frames, so near-identical neighboring frames never appear in both the training and validation sets.
 
 | Metric | Score |
 |---|---|
@@ -95,10 +95,10 @@ YOLOv8n-pose trained on 3,332 frames for 150 epochs with HSV augmentation.
 ![Training results](results/results.png)
 ![Confusion matrix](results/confusion_matrix_normalized.png)
 
-**Validation: ground truth vs predictions**
 
-![Ground truth](results/val_batch0_labels.jpg)
-![Predictions](results/val_batch0_pred.jpg)
+
+
+
 
 ### Deployment notes
 
