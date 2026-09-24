@@ -27,11 +27,11 @@ All five haptic drivers share one I2C address, so they sit behind the TCA9548A m
 
 ## System Pipeline
 
-~~
+```
 Camera   -> finger_tracker -> zone_manager -> haptic_encoder -> DRV2605L -> ERM motors
                                                    ^
 MPU-6050 -> probe_tracker (IMU) -------------------+-> tremor / sudden-movement alerts
-~~
+```
 
 | Package | Role |
 |---|---|
@@ -43,7 +43,7 @@ MPU-6050 -> probe_tracker (IMU) -------------------+-> tremor / sudden-movement 
 
 ## Repository Structure
 
-~~
+```
 ros2_ws/src/   ROS2 packages (see table above)
 pi/vision/     Standalone Pi scripts: YOLO hand tracking, ArUco zone detection, integrated safety
 pi/dataset/    Dataset recording and frame extraction
@@ -51,11 +51,11 @@ pi/tools/      Hardware test utilities (LEDs)
 training/      YOLO dataset building and training plots
 weights/       Trained model (best.pt, best.onnx)
 results/       Training metrics and validation images
-~~
+```
 
 ## Running
 
-~~bash
+```bash
 # ROS2 pipeline
 cd ros2_ws
 colcon build
@@ -65,7 +65,7 @@ ros2 launch haptic_launch haptic.launch.py
 # Standalone YOLO hand tracking (live stream on port 5004)
 cp weights/best.onnx ~/best.onnx
 python3 pi/vision/yolo_hand_live.py
-~~
+```
 
 ## Hand Tracking Model
 
