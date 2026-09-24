@@ -32,10 +32,16 @@ All five haptic drivers share one I2C address, so they sit behind the TCA9548A m
 
 ## System Pipeline
 
-```
-Camera   -> finger_tracker -> zone_manager -> haptic_encoder -> DRV2605L -> ERM motors
-                                                   ^
-MPU-6050 -> probe_tracker (IMU) -------------------+-> tremor / sudden-movement alerts
+```mermaid
+flowchart LR
+    CAM["NoIR camera"] --> FT["finger_tracker<br/>YOLOv8n-pose"]
+    FT --> ZM["zone_manager"]
+    ZM --> HE["haptic_encoder"]
+    IMU["MPU-6050 IMU"] --> HE
+    HE --> MUX["TCA9548A I2C mux"]
+    MUX --> DRV["5x DRV2605L"]
+    DRV --> ERM["ERM motors"]
+    HE --> ALERT["Tremor / sudden-movement alerts"]
 ```
 
 | Package | Role |
