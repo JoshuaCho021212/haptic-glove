@@ -2,8 +2,8 @@
 
 A wearable haptic feedback glove that tracks the user's hand in real time and delivers per-finger vibration cues, with built-in safety monitoring. Runs entirely on a Raspberry Pi 4 with ROS2.
 
-<!-- TODO: add a photo or GIF of the glove here -->
-<!-- ![Haptic glove](docs/glove.gif) -->
+
+![Haptic glove](docs/glove_front.webp)
 
 ## Features
 
@@ -11,6 +11,9 @@ A wearable haptic feedback glove that tracks the user's hand in real time and de
 - **Custom gloved-hand tracking**: MediaPipe fails on the gloved hand because wires and the perfboard break the bare-hand silhouette, so I trained a custom **YOLOv8n-pose** model (21 keypoints) and deployed it on the Pi with ONNX Runtime
 - **Safety monitoring**: IMU-based tremor detection (`/tremor_alert`) and a sudden-movement safety stop (`/sudden_move_alert`)
 - **Marker-defined work zone**: an ArUco marker defines the treatment/work area, and the camera uses it to set the safety zone
+
+![Zone-based feedback demo](docs/zone_demo.webp)
+*Fingertip LEDs indicate each finger's state as the hand moves over the ArUco-marked work area.*
 
 ## Hardware
 
@@ -24,6 +27,9 @@ A wearable haptic feedback glove that tracks the user's hand in real time and de
 | Enclosure | TPU finger caps with motor and LED pockets, SolidWorks forearm shell for the electronics |
 
 All five haptic drivers share one I2C address, so they sit behind the TCA9548A multiplexer. IMU reads are consolidated into the haptic encoder node and guarded with a `threading.Lock()` to avoid bus conflicts.
+
+![First hardware prototype](docs/glove_side.webp)
+*First hardware prototype: all components connected with jumper wires, before soldering.*
 
 ## System Pipeline
 
