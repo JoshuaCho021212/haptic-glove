@@ -3,7 +3,7 @@
 A wearable haptic feedback glove that tracks the user's hand in real time and delivers per-finger vibration cues, with built-in safety monitoring. Runs entirely on a Raspberry Pi 4 with ROS2.
 
 
-![Haptic glove](docs/glove_front.webp)
+<p align="center"><img src="docs/glove_front.webp" width="380" alt="Haptic glove"></p>
 
 ## Features
 
@@ -12,8 +12,8 @@ A wearable haptic feedback glove that tracks the user's hand in real time and de
 - **Safety monitoring**: IMU-based tremor detection (`/tremor_alert`) and a sudden-movement safety stop (`/sudden_move_alert`)
 - **Marker-defined work zone**: an ArUco marker defines the treatment/work area, and the camera uses it to set the safety zone
 
-![Zone-based feedback demo](docs/zone_demo.webp)
-*Fingertip LEDs indicate each finger's state as the hand moves over the ArUco-marked work area.*
+<p align="center"><img src="docs/zone_demo.webp" width="450" alt="Zone-based feedback demo"></p>
+<p align="center"><em>Fingertip LEDs indicate each finger's state as the hand moves over the ArUco-marked work area.</em></p>
 
 ## Hardware
 
@@ -28,8 +28,8 @@ A wearable haptic feedback glove that tracks the user's hand in real time and de
 
 All five haptic drivers share one I2C address, so they sit behind the TCA9548A multiplexer. IMU reads are consolidated into the haptic encoder node and guarded with a `threading.Lock()` to avoid bus conflicts.
 
-![First hardware prototype](docs/glove_side.webp)
-*First hardware prototype: all components connected with jumper wires, before soldering.*
+<p align="center"><img src="docs/glove_side.webp" width="320" alt="First hardware prototype"></p>
+<p align="center"><em>First hardware prototype: all components connected with jumper wires, before soldering.</em></p>
 
 ## System Pipeline
 
