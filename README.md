@@ -46,6 +46,18 @@ MPU-6050 -> probe_tracker (IMU) -------------------+-> tremor / sudden-movement 
 | `probe_tracker` | MPU-6050 IMU publisher |
 | `haptic_launch` | Launches the full pipeline |
 
+## Challenges & Solutions
+
+| Challenge | Root cause | Solution |
+|---|---|---|
+| MediaPipe could not track the gloved hand | Wires, fingertip caps, and the perfboard break the bare-hand silhouette MediaPipe is trained on | Recorded 18 clips, labeled 21 keypoints in self-hosted CVAT, and trained a custom YOLOv8n-pose model on 3,332 frames |
+| Five haptic drivers on one I2C bus | Every DRV2605L has the same fixed address (0x5A) | Placed each driver on its own TCA9548A multiplexer channel (0-4), with the IMU on channel 5 |
+| Intermittent I2C read/write errors | The IMU and haptic drivers were accessed from separate nodes, so multiplexer channel switches interleaved | Consolidated IMU reads into the `haptic_encoder` node and guarded each channel switch and transaction with a `threading.Lock()` |
+| Model crashed on the Pi 4 | onnxruntime 1.28 fails with a bus error on the Pi 4 | Pinned `onnxruntime==1.18.1` and added a 2GB swap file |
+| Very low confidence from the 320x320 model | Input resolution far below the 640x640 training size | Exported at 640x640 and ran inference every 3rd frame to stay near real-time |
+| Accuracy drop on the live feed | Color-correcting the NoIR camera output made live frames look different from the training data | Fed raw frames to the model, matching the training data |
+| Risk of inflated validation scores | Neighboring video frames are nearly identical | Held out entire CVAT jobs (clips) for validation instead of random frames |
+
 ## Repository Structure
 
 ```
@@ -100,8 +112,7 @@ YOLOv8n-pose trained on 3,332 frames for 150 epochs with HSV augmentation. Glove
 
 ### Deployment notes
 
-- Deployed as a **640x640 ONNX** model. The 320x320 export produced very low confidence, so it is not used.
-- `onnxruntime==1.18.1` is required; 1.28 causes a bus error on the Pi 4.
-- A 2GB swap file is needed.
-- Inference runs every 3rd frame for near-real-time performance.
-- Do **not** apply NoIR color correction before inference. It creates a domain gap between training data and the live feed.
+- 640x640 ONNX model running on `onnxruntime==1.18.1`
+- Inference every 3rd frame
+- 2GB swap file required
+- Raw (uncorrected) NoIR frames are fed to the model
