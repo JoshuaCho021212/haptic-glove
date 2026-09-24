@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>haptic_launch</name>
+  <version>0.0.0</version>
+  <description>Haptic glove launch package</description>
+  <maintainer email="joshuacho@todo.todo">joshuacho</maintainer>
+  <license>MIT</license>
+  <exec_depend>finger_tracker</exec_depend>
+  <exec_depend>zone_manager</exec_depend>
+  <exec_depend>haptic_encoder</exec_depend>
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

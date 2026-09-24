@@ -14,4 +14,8 @@ cvat_exports_v2/
 !weights/*.pt
 !weights/*.onnx
 !results/*.png
-!results/*.jpg
+!results/*.jpg__pycache__/
+*.pyc
+build/
+install/
+log/
