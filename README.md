@@ -2,7 +2,6 @@
 
 A wearable haptic feedback glove that tracks the user's hand in real time and delivers per-finger vibration cues, with built-in safety monitoring. Runs entirely on a Raspberry Pi 4 with ROS2.
 
-
 <p align="center"><img src="docs/glove_front.webp" width="380" alt="Haptic glove"></p>
 
 ## Features
@@ -95,10 +94,9 @@ YOLOv8n-pose trained on 3,332 frames for 150 epochs with HSV augmentation. Glove
 ![Training results](results/results.png)
 ![Confusion matrix](results/confusion_matrix_normalized.png)
 
+**Predictions on held-out validation frames** (selected to cover different poses and lighting)
 
-
-
-
+![Validation predictions](results/val_predictions_grid.jpg)
 
 ### Deployment notes
 
