@@ -61,6 +61,8 @@ flowchart LR
 | Intermittent I2C read/write errors | The IMU and haptic drivers were accessed from separate nodes, so multiplexer channel switches interleaved | Consolidated IMU reads into the `haptic_encoder` node and guarded each channel switch and transaction with a `threading.Lock()` |
 | Model crashed on the Pi 4 | onnxruntime 1.28 fails with a bus error on the Pi 4 | Pinned `onnxruntime==1.18.1` and added a 2GB swap file |
 | Very low confidence from the 320x320 model | Input resolution far below the 640x640 training size | Exported at 640x640 and ran inference every 3rd frame to stay near real-time |
+| INT8 dynamic quantization made the model slower (0.71x) | Dynamic quantization recomputes activation ranges every run and maps convolutions to less-optimized `ConvInteger` kernels, which suits Transformers, not CNNs | Switched to static quantization with a 100-image calibration set drawn from the training split |
+| Static INT8 model dropped to 0 mAP | The YOLO output head packs box coordinates (0-640) and confidences (0-1) into one tensor, so 8-bit quantization rounded every confidence to zero | Kept the output head (`/model.22/`) in FP32 and quantized the rest of the network |
 | Accuracy drop on the live feed | Color-correcting the NoIR camera output made live frames look different from the training data | Fed raw frames to the model, matching the training data |
 | Risk of inflated validation scores | Neighboring video frames are nearly identical | Held out entire CVAT jobs (clips) for validation instead of random frames |
 
@@ -71,8 +73,8 @@ ros2_ws/src/   ROS2 packages (see table above)
 pi/vision/     Standalone Pi scripts: YOLO hand tracking, ArUco zone detection, integrated safety
 pi/dataset/    Dataset recording and frame extraction
 pi/tools/      Hardware test utilities (LEDs)
-training/      YOLO dataset building and training plots
-weights/       Trained model (best.pt, best.onnx)
+training/      YOLO dataset building, training plots, and INT8 quantization scripts
+weights/       Trained model (best.pt, best.onnx, best_int8.onnx)
 results/       Training metrics and validation images
 ```
 
@@ -116,9 +118,37 @@ YOLOv8n-pose trained on 3,332 frames for 150 epochs with HSV augmentation. Glove
 
 ![Validation predictions](results/val_predictions_grid.jpg)
 
+### INT8 quantization for the Pi
+
+The FP32 model runs at roughly 0.5-0.6 s per frame on the Pi 4, so the model was quantized to INT8 with post-training static quantization (`training/quantization/`).
+
+| | FP32 | INT8 (static) |
+|---|---|---|
+| Model size | 13.9 MB | **7.3 MB** (-47%) |
+| Latency on Raspberry Pi 4, run 1 | 627.6 ms | **491.2 ms** (-22%) |
+| Latency on Raspberry Pi 4, run 2 | 518.1 ms | **381.5 ms** (-26%) |
+| Pose mAP50 | 0.995 | **0.995** |
+| Pose mAP50-95 | 0.703 | **0.700** |
+
+Latency is measured with `onnxruntime==1.18.1` on the Pi CPU at 640x640 input. Accuracy is measured with Ultralytics validation on the held-out frames. The FP32/INT8 ratio held across two runs even though absolute timings varied with background load.
+
+How it got there:
+
+1. **Dynamic quantization** was tried first and made the model **slower** (0.71x on a desktop CPU), because it recomputes activation ranges on every run and suits Transformer matrix multiplies rather than convolutions.
+2. **Static quantization** (QDQ, per-channel INT8 weights, calibrated on 100 training frames) collapsed accuracy to **0 mAP**. The output head packs box coordinates (0-640) and confidences (0-1) into one tensor, and a single 8-bit scale over that range rounds every confidence to zero.
+3. Keeping the **output head (`/model.22/`) in FP32** and quantizing the rest restored full accuracy while keeping the speedup, since most of the compute is in the backbone.
+4. The quantized model is saved with ONNX IR version 9 so it loads on the Pi's pinned `onnxruntime==1.18.1`.
+
+On a desktop x86 CPU the two models ran at the same speed; the gain appears on the Pi's ARM CPU, which is where the model is deployed.
+
+```bash
+python training/quantization/quantize_int8.py --model weights/best.onnx --calib <calibration_images_dir> --out weights/best_int8.onnx
+python training/quantization/benchmark.py weights/best.onnx weights/best_int8.onnx
+```
+
 ### Deployment notes
 
-- 640x640 ONNX model running on `onnxruntime==1.18.1`
+- 640x640 ONNX model running on `onnxruntime==1.18.1` (FP32 `best.onnx` or INT8 `best_int8.onnx`)
 - Inference every 3rd frame
 - 2GB swap file required
 - Raw (uncorrected) NoIR frames are fed to the model
