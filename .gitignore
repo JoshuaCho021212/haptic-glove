@@ -1,21 +1,31 @@
-﻿# Python
+# Python
 __pycache__/
 *.pyc
 
-# 대용량 데이터셋 및 학습 결과 (레포에 안 올림)
+# ROS2 build output
+build/
+install/
+log/
+
+# Large local datasets, training runs and archives (not tracked)
+runs/
+yolo_dataset*/
+cvat_exports*/
+zone_crops*/
+*.zip
+*.tar.gz
+*.tgz
+*.npy
+
+# Model and image files are ignored by default...
 *.pt
 *.onnx
 *.jpg
 *.png
-*.npy
-runs/
-yolo_dataset/
-cvat_exports_v2/
-!weights/*.pt
-!weights/*.onnx
-!results/*.png
-!results/*.jpg__pycache__/
-*.pyc
-build/
-install/
-log/
+# ...except the ones the README uses
+!weights/**/*.pt
+!weights/**/*.onnx
+!docs/**/*.jpg
+!docs/**/*.png
+!training/v1/results/*.png
+!training/v1/results/*.jpg
