@@ -34,7 +34,7 @@ flowchart LR
 
 Each frame, the camera finds the fingertip LEDs, measures each finger's distance to the zone edge in millimetres (scaled from the known marker size), maps it to one of five warning levels inside a 50 mm band, and sends that level to the glove. Three design decisions shape the system:
 
-**1. LEDs track the fingers; YOLO only fills the gaps.** An LED is a bright point that can be found in every frame (17-19 fps on the Pi) with pixel precision. YOLO pose takes about 0.6 s per inference on the Pi's CPU and its keypoints are much less precise, which is too slow and too uncertain to drive haptics directly. But LEDs disappear when the fingers curl, so YOLO, with optical flow carrying its keypoints between inferences, covers the hidden fingers and catches the whole hand leaving the zone, even as a closed fist.
+**1. LEDs track the fingers; YOLO only fills the gaps.** LEDs are found in every frame (17-19 fps) with pixel precision, while YOLO takes ~0.6 s per inference on the Pi and is far less precise. YOLO, kept current by optical flow, covers only what LEDs cannot: curled fingers whose LEDs are hidden, and the whole hand leaving the zone.
 
 **2. Distance is encoded as pulse rate, not strength.** Differences in ERM motor strength are hard to feel on the skin, while a change in rhythm is obvious. Like a parking sensor, the pulse period goes from 0.9 s to 0.22 s as the finger nears the edge, and becomes continuous once it is outside.
 
@@ -43,7 +43,7 @@ Each frame, the camera finds the fingertip LEDs, measures each finger's distance
 <p align="center"><img src="docs/videos/hand-control.gif" width="440" alt="LED and YOLO tracking"></p>
 <p align="center"><em>Engineer view (1.5x speed): filled dots are LEDs, hollow circles are YOLO estimates for fingers whose LEDs are hidden.</em></p>
 
-The **web app** has a Doctor mode (brightened camera view, a large status banner, controls for an assistant to pause the glove or turn off single fingers) and an Engineer mode (raw detection view, live tuning, logs). It also supports no-go areas drawn on the live view and an IMU-based steadiness monitor that suggests a rest. More in [`docs/ENGINEERING.md`](docs/ENGINEERING.md#web-app).
+The **web app** has a Doctor mode for the clinical team and an Engineer mode for tuning, plus no-go areas and an IMU steadiness monitor ([details](docs/ENGINEERING.md#web-app)).
 
 <p align="center"><img src="docs/images/ui-doctor-caution.png" width="400" alt="Doctor view, caution"> <img src="docs/images/ui-doctor-nogo.png" width="400" alt="Doctor view, no-go area"></p>
 <p align="center"><em>Doctor view: a finger near the edge (left) and inside a no-go area (right)</em></p>
@@ -56,12 +56,12 @@ The **web app** has a Doctor mode (brightened camera view, a large status banner
 | Camera | 1280 x 960, capped at 20 fps | configured |
 | YOLO inference (416 px, ONNX, Pi 4 CPU) | ~0.6 s | measured (640 px: ~1.2 s) |
 | Warning band | 50 mm, 5 levels; pulse period 0.9 s to 0.22 s | configured |
-| Distance resolution | ~3 mm per pixel in the 640 x 480 tracking frame | estimated from marker size |
+| Distance resolution | ~3 mm per pixel (tracking runs on a 640 x 480 downscale of the 1280 x 960 frame to keep the loop at 17-19 fps; markers are detected at full resolution) | estimated from marker size |
 | Haptic update loop / IMU sampling | 100 Hz / 100 Hz | configured |
 | Vision heartbeat timeout | 1 s | configured |
 | Camera-to-vibration latency (LED path) | ~150-250 ms | **estimated**, not yet measured end-to-end |
 
-The latency estimate adds frame capture (up to ~50 ms), processing (~55 ms per frame), ROS2 messaging and the 100 Hz haptic loop (~10 ms), and ERM spin-up (~30-50 ms). Measuring it end-to-end is the next step.
+The latency estimate adds frame capture (up to ~50 ms), processing (~55 ms per frame), ROS2 messaging and the 100 Hz haptic loop (~10 ms), and ERM spin-up (~30-50 ms). **What it means:** at a typical 10 cm/s hand speed, 150-250 ms is 15-25 mm of travel, so the first warning still arrives with at least half of the 50 mm band left before the edge. Measuring the latency end-to-end is the next step.
 
 ## Pilot Study
 
@@ -69,7 +69,7 @@ The latency estimate adds frame capture (up to ~50 ms), processing (~55 ms per f
 
 **Design:** 3 sessions × 3 conditions × 3 repetitions = 27 trials. The conditions are (1) glove only, with no feedback, (2) glove + vibration and (3) glove + vibration + sound. Each session used a different condition order (1>2>3, 2>3>1, 3>1>2) to balance out practice effects. All sessions were run by the developer.
 
-<p align="center"><img src="docs/images/results-outside-by-participant.png" width="640"></p>
+<p align="center"><img src="docs/images/results-outside-by-session.png" width="640"></p>
 <p align="center"><em>Time outside the zone in each session. The ranking (glove only > vibration > vibration + sound) is the same in all three orders.</em></p>
 
 <p align="center"><img src="docs/images/results-condition-summary.png" width="760"></p>

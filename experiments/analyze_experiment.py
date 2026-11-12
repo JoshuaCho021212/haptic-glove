@@ -67,7 +67,7 @@ def main():
     ax.set_title("Time outside the safe zone, per session (mean of 3 trials)", loc="left", color=INK, fontsize=13, pad=14)
     ax.legend(frameon=False, loc="upper right", labelcolor=INK)
     fig.tight_layout()
-    fig.savefig(out / "results-outside-by-participant.png", facecolor=SURF)
+    fig.savefig(out / "results-outside-by-session.png", facecolor=SURF)
 
     fig, axs = plt.subplots(1, 3, figsize=(12, 4.4), dpi=200, facecolor=SURF)
     specs = [("outside_pct", "Time outside zone (%)", "{:.1f}%"),
